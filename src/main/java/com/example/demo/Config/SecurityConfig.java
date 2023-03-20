@@ -9,6 +9,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.web.filter.CorsFilter;
+import com.example.demo.Filter.MyFilter1;
 
 @Configuration
 @EnableWebSecurity
@@ -19,6 +20,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
+        //사용자 정의 필터 적용 
+        http.addFilter(new MyFilter1());
         http.csrf().disable();
         //세션을 사용하지 않음
         http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
