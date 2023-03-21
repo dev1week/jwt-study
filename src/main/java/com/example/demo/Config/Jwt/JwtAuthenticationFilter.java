@@ -1,13 +1,25 @@
 package com.example.demo.Config.Jwt;
 
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.algorithms.Algorithm;
+import com.example.demo.Config.Auth.PrincipalDetails;
+import com.example.demo.Model.User;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+import javax.servlet.FilterChain;
+import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.Date;
 
 
 //스프링 시큐리티에서 해당 필터가 있음
@@ -30,8 +42,27 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 
 
         System.out.println("로그인 시도중");
+    //username password를 받아서
+        //json 파싱하기
+        ObjectMapper om = new ObjectMapper();
+        try {
+            User user = om.readValue(request.getInputStream(), User.class);
+            UsernamePasswordAuthenticationToken authenticationToken
+                    = new UsernamePasswordAuthenticationToken(user.getUsername(), user.getPassword());
 
-        //username password를 받아서
+
+            //PrincipalDetailsService의 loadUserByUsername()함수가 실행됨
+            Authentication authentication =
+                    authenticationManager.authenticate(authenticationToken);
+
+
+            PrincipalDetails principalDetails = (PrincipalDetails) authentication.getPrincipal();
+
+            //반환시 auth 객체가 session에 저장됨 => 로그인이 되었다는 뜻
+            return authentication;
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
 
         //정상인지 로그인 시도
             //principaldetailsService 호출 => loadUserByName()실행
@@ -40,6 +71,20 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 
         //jwt 토큰을 만들어서 반환한다.
 
-        return super.attemptAuthentication(request, response);
+    }
+    //attemptAuthentication 실행 후 인증이 정상적으로 되었으면 sucessfulAuthentication 함수가 실행됨
+    //jwt 토큰을 만들어서 request 요청한 사용자에게 jwt 토큰을 response 해주면 된다.
+    @Override
+    protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authResult) throws IOException, ServletException {
+        PrincipalDetails principalDetails = (PrincipalDetails) authResult.getPrincipal();
+        //로그인이 되어있다는 토큰을 만들어보자 
+        String jwtToken = JWT.create()
+                .withSubject("cos토큰")
+                .withExpiresAt(new Date(System.currentTimeMillis()+(60000*10)))
+                .withClaim("id", principalDetails.getUser().getId())
+                .withClaim("username", principalDetails.getUser().getUsername())
+                .sign(Algorithm.HMAC512("cos"));
+
+        response.addHeader("Authorization", "Bearer "+jwtToken);
     }
 }
