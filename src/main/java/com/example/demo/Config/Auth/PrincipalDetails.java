@@ -1,12 +1,14 @@
 package com.example.demo.Config.Auth;
 
 import com.example.demo.Model.User;
+import lombok.Data;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.ArrayList;
 import java.util.Collection;
 
+@Data
 public class PrincipalDetails implements UserDetails{
     private User user;
 
