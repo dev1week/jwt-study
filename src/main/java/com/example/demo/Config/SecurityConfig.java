@@ -11,6 +11,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.web.filter.CorsFilter;
 import com.example.demo.Filter.MyFilter1;
+import com.example.demo.Config.Jwt.*;
 
 @Configuration
 @EnableWebSecurity
@@ -31,8 +32,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .addFilter(corsFilter)
                 //기본적인 로그인 방식 사용하지 않음
                 .formLogin().disable()
-                //
                 .httpBasic().disable()
+                //formLogin을 비활성화 해놓았기 때문에 직접 필터를 만들어야한다.
+                .addFilter(new JwtAuthenticationFilter(authenticationManager()))
                 .authorizeRequests()
                 //권한에 따라 허용할 api 정하기
                 .antMatchers("/api/v1/user/**")
@@ -42,5 +44,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/api/v1/admin/**")
                 .access("hasRole('ROLE_ADMIN')")
                 .anyRequest().permitAll();
+
     }
 }
