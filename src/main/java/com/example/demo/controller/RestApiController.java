@@ -9,4 +9,9 @@ public class RestApiController {
     public String home(){
         return "<h1>home</h1>";
     }
+
+    @PostMapping("token")
+    public String token(){
+        return "<h1>token</h1>";
+    }
 }
