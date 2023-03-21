@@ -1,5 +1,6 @@
 package com.example.demo.Config;
 
+import com.example.demo.Repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,10 +21,13 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     private final CorsFilter corsFilter;
 
+
+    private final UserRepository userRepository;
+
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         //사용자 정의 필터 적용
-        http.addFilterBefore(new MyFilter1(), BasicAuthenticationFilter.class);
+        //http.addFilterBefore(new MyFilter1(), BasicAuthenticationFilter.class);
         http.csrf().disable();
         //세션을 사용하지 않음
         http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
@@ -35,6 +39,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .httpBasic().disable()
                 //formLogin을 비활성화 해놓았기 때문에 직접 필터를 만들어야한다.
                 .addFilter(new JwtAuthenticationFilter(authenticationManager()))
+                .addFilter(new JwtAuthorizationFilter(authenticationManager(), userRepository))
                 .authorizeRequests()
                 //권한에 따라 허용할 api 정하기
                 .antMatchers("/api/v1/user/**")
